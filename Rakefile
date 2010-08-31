@@ -6,7 +6,7 @@ begin
   Jeweler::Tasks.new do |gem|
     gem.name = "rubyhaze-persisted"
     gem.summary = %Q{ActiveRecord-like objects persisted with Hazelcast and RubyHaze}
-    gem.description = %Q{TODO: longer description of your gem}
+    gem.description = %Q{Have your distributed Ruby objects and search them too.}
     gem.email = "aemadrid@alliancehealth.com"
     gem.homepage = "http://github.com/aemadrid/rubyhaze-persisted"
     gem.authors = ["Adrian Madrid"]
