@@ -11,7 +11,7 @@ Gem::Specification.new do |s|
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Adrian Madrid"]
   s.date = %q{2010-08-30}
-  s.description = %q{TODO: longer description of your gem}
+  s.description = %q{Have your distributed Ruby objects and search them too.}
   s.email = %q{aemadrid@alliancehealth.com}
   s.extra_rdoc_files = [
     "LICENSE",
