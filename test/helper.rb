@@ -1,9 +1,11 @@
-require 'rubygems'
 require 'test/unit'
+require 'forwardable'
 
-$LOAD_PATH.unshift(File.dirname(__FILE__))
-$LOAD_PATH.unshift(File.join(File.dirname(__FILE__), '..', 'lib'))
-require 'rubyhaze-persisted'
+require File.expand_path(File.dirname(__FILE__) + '/../lib/rubyhaze/persisted')
 
 class Test::Unit::TestCase
 end
+
+# Start a new hazelcast cluster
+RubyHaze.init :group => { :username => "test_persisted", :password => "test_persisted" }
+

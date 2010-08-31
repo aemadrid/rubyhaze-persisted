@@ -10,7 +10,10 @@ begin
     gem.email = "aemadrid@alliancehealth.com"
     gem.homepage = "http://github.com/aemadrid/rubyhaze-persisted"
     gem.authors = ["Adrian Madrid"]
-    # gem is a Gem::Specification... see http://www.rubygems.org/read/chapter/20 for additional settings
+    gem.files = FileList['bin/*', 'lib/**/*.rb', 'test/**/*.rb', '[A-Z]*'].to_a
+    gem.test_files = Dir["test/test*.rb"]
+    gem.platform = "jruby"
+    gem.add_dependency "bitescript"
   end
   Jeweler::GemcutterTasks.new
 rescue LoadError

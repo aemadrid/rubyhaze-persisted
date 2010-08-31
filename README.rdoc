@@ -1,15 +1,40 @@
 = rubyhaze-persisted
 
-Description goes here.
+RubyHaze Persisted is a little gem that helps you persist and search your (j)ruby objects into Hazelcast distributed maps.
+
+== Getting started
+
+Let's get some distributed ruby objects going:
+
+  shell> rvm jruby
+  shell> gem install rubyhaze-persisted
+  shell> rubyhaze_console
+
+  require 'rubyhaze-persisted'
+
+  class Foo
+    include RubyHaze::Persisted
+    field :name, :string
+    field :age, :int
+  end
+
+  a = Foo.create :name => "Raffaello", :age => 32
+  b = Foo.create :name => "Leonardo", :age => 45
+  c = Foo.create :name => "Michelangelo", :age => 65
+
+  found = Foo.find "age < 60 AND name LIKE '%lo'"
+  found.first.name
+
+  >> "Raffaello"
 
 == Note on Patches/Pull Requests
- 
+
 * Fork the project.
 * Make your feature addition or bug fix.
 * Add tests for it. This is important so I don't break it in a
-  future version unintentionally.
+ future version unintentionally.
 * Commit, do not mess with rakefile, version, or history.
-  (if you want to have your own version, that is fine but bump version in a commit by itself I can ignore when I pull)
+ (if you want to have your own version, that is fine but bump version in a commit by itself I can ignore when I pull)
 * Send me a pull request. Bonus points for topic branches.
 
 == Copyright
