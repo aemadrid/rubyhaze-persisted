@@ -14,8 +14,8 @@ Let's get some distributed ruby objects going:
 
   class Foo
     include RubyHaze::Persisted
-    field :name, :string
-    field :age, :int
+    attribute :name, :string
+    attribute :age, :int
   end
 
   a = Foo.create :name => "Raffaello", :age => 32

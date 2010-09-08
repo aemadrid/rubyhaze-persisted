@@ -1,36 +1,49 @@
-require "rubyhaze"
-
-gem "activesupport"
-
+gem "activesupport", "3.0.0"
 require "active_support/core_ext/module/attr_accessor_with_default"
 require "active_support/core_ext/object/blank"
 require "active_support/concern"
 require "active_support/callbacks"
 
+gem "activemodel", "3.0.0"
 require "active_model"
 
 module RubyHaze
+
   module Persisted
+    class Register
+      class << self
+        def classes
+          @classes ||= []
+        end
 
-    extend ActiveSupport::Concern
-    include ActiveSupport::Callbacks
-
-    extend ActiveModel::Naming
-    extend ActiveModel::Translation
-    extend ActiveModel::Callbacks
-
-    include ActiveModel::AttributeMethods
-    include ActiveModel::Conversion
-    include ActiveModel::Dirty
-    include ActiveModel::Serialization
-    include ActiveModel::Serializers::JSON
-    include ActiveModel::Serializers::Xml
-    include ActiveModel::Validations
-
-    included do
-      attribute_method_suffix '', '=', '?'
-      extend ClassMethods
+        def add(base)
+          return false if classes.include? base.name
+          classes << base.name
+          true
+        end
+      end
     end
+
+   def self.included(base)
+     return unless RubyHaze::Persisted::Register.add(base)
+
+     base.send :extend, ClassMethods
+     base.send :extend, ActiveModel::Naming
+     base.send :extend, ActiveModel::Translation
+     base.send :extend, ActiveModel::Callbacks
+
+     base.send :include, ActiveModel::AttributeMethods
+     base.send :include, ActiveModel::Conversion
+     base.send :include, ActiveModel::Dirty
+     base.send :include, ActiveModel::Serialization
+     base.send :include, ActiveModel::Serializers::JSON
+     base.send :include, ActiveModel::Serializers::Xml
+     base.send :include, ActiveModel::Validations
+     base.send :include, InstanceMethods
+
+     base.attribute_method_suffix '', '=', '?'
+     base.define_model_callbacks :create, :update, :load, :destroy
+   end
 
     module InstanceMethods
 
@@ -121,34 +134,51 @@ module RubyHaze
         result != false
       end
 
-      def update
-        raise "Missing uid" unless uid?
-        self.class.map[uid] = shadow_object
-        @previously_changed = changes
-        @changed_attributes.clear
-        true
+      def create
+        _run_create_callbacks do
+          @uid ||= RubyHaze.random_uuid
+          self.class.map[uid] = shadow_object
+          @previously_changed = changes
+          @changed_attributes.clear
+          @new_record = false
+          uid
+        end
       end
 
-      def create
-        @uid ||= RubyHaze.random_uuid
-        self.class.map[uid] = shadow_object
-        @previously_changed = changes
-        @changed_attributes.clear
-        @new_record = false
-        uid
+      def update
+        _run_update_callbacks do
+          raise "Missing uid" unless uid?
+          self.class.map[uid] = shadow_object
+          @previously_changed = changes
+          @changed_attributes.clear
+          true
+        end
       end
 
       def load
-        raise "Missing uid for load" if uid.blank?
-        found = self.class.map[uid]
-        raise "Record not found" unless found
-        load_shadow_object(found)
-        @changed_attributes.clear
-        @new_record = false
-        self
+        _run_load_callbacks do
+          raise "Missing uid for load" if uid.blank?
+          found = self.class.map[uid]
+          raise "Record not found" unless found
+          load_shadow_object(found)
+          @changed_attributes.clear
+          @new_record = false
+          self
+        end
       end
       alias :reload :load
       alias :reset  :load
+
+      def destroy
+        _run_destroy_callbacks do
+          if persisted?
+            self.class.map.remove uid
+          end
+          @destroyed = true
+          freeze
+        end
+      end
+      alias :delete :destroy
 
       def to_s
         "<#{self.class.name}:#{object_id} #{to_ary[1..-1].map { |k, v| "#{k}=#{v}" }.join(" ")} >"
@@ -170,16 +200,12 @@ module RubyHaze
         obj
       end
 
-      def map_java_class_name
-        'RubyHaze_Shadow__' + name
-      end
-
       def map_java_class
-        @java_class ||= RubyHaze::Persisted::ShadowClassGenerator.get map_java_class_name, attributes
+        @java_class ||= RubyHaze::Persisted::Shadow::Generator.get name, attributes
       end
 
       def map
-        @map ||= RubyHaze::Map.new map_java_class_name
+        @map ||= RubyHaze::Map.new "RubyHaze::Persisted #{name}"
       end
 
       def attributes
@@ -201,11 +227,19 @@ module RubyHaze
       def attribute(name, type, options = {})
         raise "Attribute [#{name}] already defined" if attribute_names.include?(name)
         @attributes << [name, type, options]
-#        attr_accessor name
+        @attribute_methods_generated = false
+        define_attribute_methods [ name ]
+        self
       end
 
       def find(predicate)
         map.values(predicate).map { |shadow| new.load_shadow_object shadow }
+      end
+
+      def [](*args)
+        options = args.extract_options!
+        options[:uid] = args.first if RubyHaze.valid_uuid?(args.first)
+        find(options).first
       end
 
       def find_uids(predicate)

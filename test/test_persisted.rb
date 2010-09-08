@@ -1,31 +1,29 @@
-require File.expand_path(File.dirname(__FILE__) + '/helper')
-
-class Foo
-  include RubyHaze::Persisted
-  attribute :name, :string
-  attribute :age, :int
-end unless defined? Foo
+require(File.expand_path(File.dirname(__FILE__) + '/helper'))
 
 class TestRubyHazePersistedClassMethods < Test::Unit::TestCase
 
   def test_right_store
     store = Foo.map
     assert_equal store.class.name, "RubyHaze::Map"
-    assert_equal store.name, "RubyHaze_Shadow__Foo"
-    assert_equal store.name, RubyHaze::Map.new("RubyHaze_Shadow__Foo").name
+    assert_equal store.name, "RubyHaze::Persisted Foo"
+    assert_equal store.name, RubyHaze::Map.new("RubyHaze::Persisted Foo").name
   end
 
   def test_right_fields
-    fields = Foo.attributes
-    assert_equal fields, [[:uid, :string, {}], [:name, :string, {}], [:age, :int, {}]]
+    assert_equal Foo.attributes, [[:uid, :string, {}], [:name, :string, {}], [:age, :int, {}]]
     assert_equal Foo.attribute_names, [:uid, :name, :age]
     assert_equal Foo.attribute_types, [:string, :string, :int]
     assert_equal Foo.attribute_options, [{}, {}, {}]
+
+    assert_equal Sub::Foo.attributes, [[:uid, :string, {}], [:name, :string, {}]]
+    assert_equal Sub::Foo.attribute_names, [:uid, :name]
+    assert_equal Sub::Foo.attribute_types, [:string, :string]
+    assert_equal Sub::Foo.attribute_options, [{}, {}]
   end
 
   def test_right_shadow_class
-    assert_equal Foo.map_java_class_name, "RubyHaze_Shadow__Foo"
-    assert_equal Foo.map_java_class.name, "Java::Default::RubyHaze_Shadow__Foo"
+    assert_equal Foo.map_java_class.name, "Java::OrgRubyhazePersistedShadowClasses::Foo"
+    assert_equal Sub::Foo.map_java_class.name, "Java::OrgRubyhazePersistedShadowClassesSub::Foo"
   end
 
 end
@@ -68,13 +66,14 @@ class TestRubyHazePersistedStorage < Test::Unit::TestCase
     assert_equal res.first, @a
     assert_equal res.first.name, @a.name
 
+#    # Throws an internal exception
 #    res = Foo.find "age IN (32, 65)"
 #    assert_equal res.size, 2
 #    names = res.map{|x| x.name }.sort
 #    assert_equal names.first, @a.name
 #    assert_equal names.last, @b.name
 
-    res = Foo.find "age < 40 AND name LIKE '%o'"
+    res = Foo.find "age < 60 AND name LIKE '%ae%'"
     assert_equal res.size, 1
     assert_equal res.first, @c
     assert_equal res.first.name, @c.name

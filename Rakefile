@@ -6,14 +6,17 @@ begin
   Jeweler::Tasks.new do |gem|
     gem.name = "rubyhaze-persisted"
     gem.summary = %Q{ActiveRecord-like objects persisted with Hazelcast and RubyHaze}
-    gem.description = %Q{Have your distributed Ruby objects and search them too.}
-    gem.email = "aemadrid@alliancehealth.com"
+    gem.description = %Q{Have your in-mempry distributed JRuby objects and search them too.}
+    gem.email = "aemadrid@gmail.com"
     gem.homepage = "http://github.com/aemadrid/rubyhaze-persisted"
     gem.authors = ["Adrian Madrid"]
     gem.files = FileList['bin/*', 'lib/**/*.rb', 'test/**/*.rb', '[A-Z]*'].to_a
     gem.test_files = Dir["test/test*.rb"]
     gem.platform = "jruby"
-    gem.add_dependency "bitescript"
+    gem.add_dependency "rubyhaze", "~> 0.0.6"
+    gem.add_dependency "bitescript", "0.0.6"
+    gem.add_dependency "activesupport", "~> 3.0.0"
+    gem.add_dependency "activemodel", "~> 3.0.0"
   end
   Jeweler::GemcutterTasks.new
 rescue LoadError

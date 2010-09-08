@@ -19,5 +19,6 @@ rdoc
 pkg
 .rvmrc
 .idea/*
+tmp
 
 ## PROJECT::SPECIFIC
